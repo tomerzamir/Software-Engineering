@@ -1,0 +1,76 @@
+title Register User 
+
+actor Vinni Puh #brown
+
+participant event_handlers #lightblue
+participant UserControl #lightblue
+participant User #yellow
+database DB#lightgreen
+
+entryspacing 0.8
+Vinni Puh->event_handlers:Vinni Puh clicks on Register User
+activate event_handlers
+
+note over event_handlers:Vinni Puh is redirected to Registration page
+
+event_handlers-->Vinni Puh: please fill information
+Vinni Puh->event_handlers:fills user details
+
+
+event_handlers->UserControl: 
+activate UserControl
+
+note over UserControl:Validation of the user information,\nChecking whether the credentials meet the site requirments
+
+
+alt if credentials are valid
+event_handlers<--UserControl:credentials valid
+else else
+event_handlers<--UserControl:ocredentials are invalid
+event_handlers-->Vinni Puh:"username/email invalid"\n(go back to 'fill user details')
+
+end
+note over UserControl:if valid continue
+User<-UserControl: user info
+activate User
+
+User->DB: search for Vinni Puh in DB
+activate DB
+alt if user already exists in the DB
+DB-->User:already exist in DB
+deactivate DB
+
+UserControl<--User:user already exists in DB
+UserControl-->event_handlers:user already exists
+event_handlers-->Vinni Puh:user already exists
+else else
+activate DB
+DB-->User: user not found
+deactivate DB
+
+UserControl<--User:user does not exist in DB
+end
+deactivate User
+deactivate DB
+
+note over UserControl,User:if user does not exist - proceed to create user
+
+UserControl->User:registerUser()
+activate User
+
+User->DB: addUsertoDB()
+activate DB
+note over DB:User is stored in DB
+
+User<--DB: data saved successfully
+deactivate DB
+UserControl<--User:completed
+deactivate User
+
+event_handlers<--UserControl:User created successfully
+note over event_handlers: updates view
+deactivate UserControl
+
+event_handlers-->Vinni Puh:User created successfully
+
+deactivate event_handlers

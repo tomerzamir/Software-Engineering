@@ -1,0 +1,53 @@
+title Updating Product Details
+
+actor Admin
+
+participant event_handlers #lightblue
+participant Administrator #lightblue
+participant Product #yellow
+database DB#lightgreen
+
+
+entryspacing 0.9
+Admin->event_handlers:ButtonupdateProduct()
+activate event_handlers
+event_handlers->Administrator:manageProduct(product)
+activate Administrator
+Administrator->Product:get product
+activate Product
+
+Product->DB:getProductInfo(product)
+activate DB
+
+Product<--DB:product information
+deactivate DB
+Product-->Administrator:product info
+deactivate Product
+
+Administrator->event_handlers:initiate product update page
+note over event_handlers:'product edit' page view is open
+event_handlers-->Admin:edit current product info
+deactivate event_handlers
+Admin->Administrator:fills new product info
+
+
+Administrator->Product:setProductPrice(price)\nsetProudctWeight(weight)\nsetProductName(name)
+activate Product
+note over Product:Updating product information
+
+Product->DB:store updated product information
+activate DB
+
+note over DB:Product details updated in DB
+Product<--DB: data saved successfully
+deactivate DB
+
+Administrator<--Product:completed
+deactivate Product
+Administrator-->event_handlers:updated
+activate event_handlers
+note over event_handlers: updates view
+deactivate Administrator
+
+Admin<--event_handlers:Product details have been updated successfully
+deactivate event_handlers

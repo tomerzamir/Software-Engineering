@@ -1,0 +1,87 @@
+title Place an order in the system
+
+actor Vinni Puh #brown
+participant event_handlers #lightblue
+participant Checkout #lightblue
+
+participant bank server#red
+participant Stock #yellow
+database DB#lightgreen
+participant Order #yellow
+
+entryspacing 0.6
+
+note over event_handlers:Shopping Cart page is open
+Vinni Puh->event_handlers:clicks on checkout
+activate event_handlers
+
+event_handlers->Checkout:checkout()
+activate Checkout
+Checkout->Stock:isAvailable(Product)
+
+entryspacing 0.3
+activate Stock
+Stock->DB:get product availability
+activate DB
+
+alt if products are available
+DB-->Stock:product is available
+else else
+DB-->Stock:      out of stock\n(can't order->exit)
+end
+deactivate DB
+
+Stock->DB:updateStock(product)
+activate DB
+note over Stock:Updating product stock
+Stock<--DB:"stock updated"
+deactivate DB
+
+
+Stock->Checkout: proceed with checkout
+deactivate Stock
+
+Checkout->event_handlers:initiate checkout view
+note over event_handlers:checkout page is open
+
+opt coupon
+Vinni Puh->event_handlers:coupon
+event_handlers->Checkout:addCoupon(String)
+note over Checkout:calculates final price
+Checkout-->Vinni Puh: final price
+end
+
+event_handlers-->Vinni Puh:"choose and fill payment information"
+Vinni Puh->event_handlers:Pay
+event_handlers->Checkout: payment
+Checkout->bank server: validate payment
+activate bank server
+alt if payment is authorized
+Checkout<--bank server:payment authorized
+deactivate bank server
+note over Checkout: if payment was authorized-proceed
+Checkout->Order:placeOrder()
+activate Order
+Order->DB:addOrdertoDB()
+activate DB
+
+note over DB:Order created in DB
+Order<--DB: data saved successfully
+deactivate DB
+
+Order-->Checkout:completed successfully
+deactivate Order
+
+event_handlers<--Checkout:completed successfully
+note over event_handlers: updates view
+Vinni Puh<--event_handlers:"Order completed successfully"
+Checkout->Vinni Puh:sendReciept()
+
+else else
+activate bank server
+Checkout<--bank server:payment unauthorized
+deactivate bank server
+Checkout-->Vinni Puh:payment unauthorized. try again.\n(go back to fill payment information)
+end
+deactivate Checkout
+deactivate event_handlers
